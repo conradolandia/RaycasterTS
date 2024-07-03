@@ -6,9 +6,8 @@ import { Player, Scene, Vector2 } from './types';
 import {
   CANVAS_WIDTH,
   CANVAS_HEIGHT,
-  BG_COLOR,
   WALL_COLOR,
-  GRID_SCALED_LINE_WIDTH
+  GRID_SCALED_LINE_WIDTH,
 } from './constants';
 
 // Utils
@@ -17,7 +16,8 @@ import {
   filledCircle,
   canvasSize,
   sceneSize,
-  renderWorld
+  renderWorld,
+  showInfo,
 } from './utils';
 
 import { controls } from './controls';
@@ -83,7 +83,7 @@ const renderGame = (
   ctx: CanvasRenderingContext2D,
   scene: Scene,
   player: Player,
-  fillColor: string,
+  fillColor: string
 ) => {
   const minimapPosition = Vector2.zero().add(canvasSize(ctx).scale(0.015));
   const cellSize = ctx.canvas.width * 0.02;
@@ -92,8 +92,8 @@ const renderGame = (
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   renderWorld(ctx, scene, player);
   minimap(ctx, player, minimapPosition, minimapSize, scene);
+  showInfo(ctx,player);
 };
-
 
 // Start the app
 (() => {
@@ -113,24 +113,21 @@ const renderGame = (
   }
 
   const scene: Scene = [
-    [null, null,   "red",     "green",  null, null, null, null, null],
-    [null, null,   null,      "purple", null, null, null, null, null],
-    [null, "cyan", "magenta", "yellow", null, null, null, null, null],
-    [null, null,   null,      null,     null, null, null, null, null],
-    [null, null,   null,      null,     null, null, null, null, null],
-    [null, null,   null,      null,     null, null, null, null, null],
-    [null, null,   null,      null,     null, null, null, null, null],
+    [null, null, 'red', 'green', null, null, null, null, null],
+    [null, null, null, 'purple', null, null, null, null, null],
+    [null, 'cyan', 'magenta', 'yellow', null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, null, null, null, null],
   ];
 
   const player = new Player(
     sceneSize(scene).mul(new Vector2(0.63, 0.63)),
-    Math.PI * 1.25
+    Math.PI * 1.25,
+    Vector2.zero()
   );
 
-  window.addEventListener('keydown', e => {
-    controls(e, ctx, scene, player, renderGame);
-  })
-
   // Draw the game
-  renderGame(ctx, scene, player, BG_COLOR);
+  controls(ctx, scene, player, renderGame);
 })();

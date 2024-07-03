@@ -94,9 +94,11 @@ export class Vector2 {
 export class Player {
   position: Vector2;
   direction: number;
-  constructor(position: Vector2, direction: number) {
+  velocity: Vector2;
+  constructor(position: Vector2, direction: number, velocity: Vector2) {
     this.position = position;
     this.direction = direction;
+    this.velocity = velocity;
   }
 
   fov(): [Vector2, Vector2] {

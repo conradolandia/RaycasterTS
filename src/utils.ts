@@ -159,3 +159,12 @@ export const renderWorld = (
     }
   }
 };
+
+// Show the speed of the game on a string in the top right corener
+export const showInfo = (ctx: CanvasRenderingContext2D, player: Player) => {
+  ctx.textAlign = 'right';
+  ctx.font = '12px Arial';
+  ctx.fillStyle = 'white';
+  ctx.fillText(`Speed: ${player.velocity.mag()}`, ctx.canvas.width - 20, ctx.canvas.height - 35);
+  ctx.fillText(`Direction: ${Math.round(player.direction * 180 / Math.PI)}`, ctx.canvas.width - 20, ctx.canvas.height - 20);
+};
