@@ -1,7 +1,7 @@
 import { NEAR_CLIPPING_PLANE, FOV } from './constants';
 
 export type Scene = Array<
-  Array<string | CanvasPattern | CanvasGradient | null>
+  Array<Color | null>
 >;
 
 export class Vector2 {
@@ -95,6 +95,7 @@ export class Player {
   position: Vector2;
   direction: number;
   velocity: Vector2;
+
   constructor(position: Vector2, direction: number, velocity: Vector2) {
     this.position = position;
     this.direction = direction;
@@ -110,5 +111,79 @@ export class Player {
     const p2 = p.add(p.sub(this.position).rotate90().norm().scale(l));
 
     return [p1, p2];
+  }
+}
+
+export class Color {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
+
+  constructor(r: number, g: number, b: number, a: number) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+
+  static red(): Color {
+    return new Color(1, 0, 0, 1);
+  }
+
+  static green(): Color {
+    return new Color(0, 1, 0, 1);
+  }
+
+  static blue(): Color {
+    return new Color(0, 0, 1, 1);
+  }
+
+  static yellow(): Color {
+    return new Color(1, 1, 0, 1);
+  }
+
+  static magenta(): Color {
+    return new Color(1, 0, 1, 1);
+  }
+
+  static cyan(): Color {
+    return new Color(0, 1, 1, 1);
+  }
+
+  static purple(): Color {
+    return new Color(1, 0, 1, 1);
+  }
+
+  static white(): Color {
+    return new Color(1, 1, 1, 1);
+  }
+
+  static black(): Color {
+    return new Color(0, 0, 0, 1);
+  }
+
+  brightness(factor: number): Color {
+    return new Color(factor * this.r, factor * this.g, factor * this.b, this.a);
+  }
+
+  toArray(): [number, number, number, number] {
+    return [
+      Math.floor(this.r * 255),
+      Math.floor(this.g * 255),
+      Math.floor(this.b * 255),
+      this.a,
+    ];
+  }
+
+  toStyle(): string {
+    return (
+      'rgba(' +
+      `${Math.floor(this.r * 255)},` +
+      `${Math.floor(this.g * 255)},` +
+      `${Math.floor(this.b * 255)},` +
+      `${this.a}` +
+      ')'
+    );
   }
 }

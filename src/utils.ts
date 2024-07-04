@@ -1,6 +1,6 @@
 import { Scene, Player, Vector2 } from './types';
 
-import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_WIDTH } from './constants';
+import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_RESOLUTION } from './constants';
 
 // Map to screen
 export const mapToScreen = (ctx: CanvasRenderingContext2D, p: Vector2): Vector2 => {
@@ -130,14 +130,14 @@ export const renderWorld = (
   scene: Scene,
   player: Player
 ) => {
-  const stripWidth = Math.ceil(ctx.canvas.width / SCREEN_WIDTH);
+  const stripWidth = Math.ceil(ctx.canvas.width / SCREEN_RESOLUTION);
   const [r1, r2] = player.fov();
 
-  for (let x = 0; x < SCREEN_WIDTH; x++) {
+  for (let x = 0; x < SCREEN_RESOLUTION; x++) {
     const point = castRay(
       scene,
       player.position,
-      r1.lerp(r2, x / SCREEN_WIDTH)
+      r1.lerp(r2, x / SCREEN_RESOLUTION)
     );
 
     const cell = hittingCell(player.position, point);
@@ -148,7 +148,7 @@ export const renderWorld = (
         const position = point.sub(player.position);
         const distance = Vector2.fromAngle(player.direction);
         const stripHeight = ctx.canvas.height / position.dot(distance);
-        ctx.fillStyle = color;
+        ctx.fillStyle = color.brightness(1/position.dot(distance)).toStyle();
         ctx.fillRect(
           x * stripWidth,
           (ctx.canvas.height - stripHeight) * 0.5,

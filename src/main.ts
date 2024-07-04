@@ -1,6 +1,6 @@
 import './style.css';
 
-import { Player, Scene, Vector2 } from './types';
+import { Player, Scene, Vector2, Color } from './types';
 
 // Constants
 import {
@@ -50,7 +50,7 @@ const minimap = (
     for (let x = 0; x < gridSize.x; x++) {
       const color = scene[y][x];
       if (color !== null) {
-        ctx.fillStyle = color;
+        ctx.fillStyle = color.toStyle();
         ctx.fillRect(x, y, 1, 1);
       }
     }
@@ -112,16 +112,18 @@ const renderGame = (
     throw new Error('Could not get 2D context from canvas');
   }
 
+  // Create the scene
   const scene: Scene = [
-    [null, null, 'red', 'green', null, null, null, null, null],
-    [null, null, null, 'purple', null, null, null, null, null],
-    [null, 'cyan', 'magenta', 'yellow', null, null, null, null, null],
+    [null, null, Color.red(), Color.green(), null, null, null, null, null],
+    [null, null, null, Color.purple(), null, null, null, null, null],
+    [null, Color.cyan(), Color.magenta(), Color.yellow(), null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
   ];
 
+  // Create the player
   const player = new Player(
     sceneSize(scene).mul(new Vector2(0.63, 0.63)),
     Math.PI * 1.25,
