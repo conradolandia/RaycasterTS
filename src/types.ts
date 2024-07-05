@@ -1,7 +1,7 @@
 import { NEAR_CLIPPING_PLANE, FOV } from './constants';
 
 export type Scene = Array<
-  Array<Color | null>
+  Array<Color | HTMLImageElement | null>
 >;
 
 export class Vector2 {

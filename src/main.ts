@@ -21,6 +21,7 @@ import {
 } from './utils';
 
 import { controls } from './controls';
+import { loadImageData } from './textures';
 
 // Minimap
 const minimap = (
@@ -48,10 +49,13 @@ const minimap = (
   // Draw the walls
   for (let y = 0; y < gridSize.y; y++) {
     for (let x = 0; x < gridSize.x; x++) {
-      const color = scene[y][x];
-      if (color !== null) {
-        ctx.fillStyle = color.toStyle();
+      const cell = scene[y][x];
+      if (cell instanceof Color) {
+        ctx.fillStyle = cell.toStyle();
         ctx.fillRect(x, y, 1, 1);
+      } else if (cell instanceof HTMLImageElement) {
+        ctx.drawImage(cell, x, y, 1, 1);
+        //ctx.putImageData(cell, x, y);
       }
     }
   }
@@ -92,11 +96,11 @@ const renderGame = (
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   renderWorld(ctx, scene, player);
   minimap(ctx, player, minimapPosition, minimapSize, scene);
-  showInfo(ctx,player);
+  //showInfo(ctx,player);
 };
 
 // Start the app
-(() => {
+(async () => {
   const canvas = document.getElementById('app') as HTMLCanvasElement | null;
 
   if (!canvas) {
@@ -112,14 +116,17 @@ const renderGame = (
     throw new Error('Could not get 2D context from canvas');
   }
 
+  const ysangrim = await loadImageData('/pacho.png');
+  console.log(ysangrim);
+
   // Create the scene
   const scene: Scene = [
-    [null, null, Color.red(), Color.green(), null, null, null, null, null],
-    [null, null, null, Color.purple(), null, null, null, null, null],
-    [null, Color.cyan(), Color.magenta(), Color.yellow(), null, null, null, null, null],
+    [null, null, ysangrim, ysangrim, null, null, null, null, null],
+    [null, null, null, ysangrim, null, null, null, null, null],
+    [null, ysangrim, ysangrim, ysangrim, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
-    [null, null, null, null, null, null, null, null, null],
+    [null, null, null, null, null, ysangrim, null, null, null],
     [null, null, null, null, null, null, null, null, null],
   ];
 
@@ -132,4 +139,5 @@ const renderGame = (
 
   // Draw the game
   controls(ctx, scene, player, renderGame);
+
 })();

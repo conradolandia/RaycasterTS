@@ -1,9 +1,12 @@
-import { Scene, Player, Vector2 } from './types';
+import { Scene, Player, Vector2, Color } from './types';
 
 import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_RESOLUTION } from './constants';
 
 // Map to screen
-export const mapToScreen = (ctx: CanvasRenderingContext2D, p: Vector2): Vector2 => {
+export const mapToScreen = (
+  ctx: CanvasRenderingContext2D,
+  p: Vector2
+): Vector2 => {
   return new Vector2(p.x * ctx.canvas.width, p.y * ctx.canvas.height);
 };
 
@@ -140,21 +143,47 @@ export const renderWorld = (
       r1.lerp(r2, x / SCREEN_RESOLUTION)
     );
 
-    const cell = hittingCell(player.position, point);
+    const c = hittingCell(player.position, point);
 
-    if (insideScene(scene, cell)) {
-      const color = scene[cell.y][cell.x];
-      if (color !== null) {
-        const position = point.sub(player.position);
-        const distance = Vector2.fromAngle(player.direction);
-        const stripHeight = ctx.canvas.height / position.dot(distance);
-        ctx.fillStyle = color.brightness(1/position.dot(distance)).toStyle();
+    if (insideScene(scene, c)) {
+      const cell = scene[c.y][c.x];
+      const position = point.sub(player.position);
+      const distance = Vector2.fromAngle(player.direction);
+      const stripHeight = ctx.canvas.height / position.dot(distance);
+      if (cell instanceof Color) {
+        ctx.fillStyle = cell.brightness(1 / position.dot(distance)).toStyle();
         ctx.fillRect(
           x * stripWidth,
           (ctx.canvas.height - stripHeight) * 0.5,
           stripWidth,
           stripHeight
         );
+      } else if (cell instanceof HTMLImageElement) {
+        const t = point.sub(c);
+
+        let u = 0;
+        if (
+          (Math.abs(t.x) < EPSILON || Math.abs(t.x - 1) < EPSILON) &&
+          t.y > 0
+        ) {
+          u = t.y;
+        } else {
+          u = t.x;
+        }
+
+        ctx.drawImage(
+          cell,
+          u * cell.width,
+          0,
+          1,
+          cell.height,
+          x * stripWidth,
+          (ctx.canvas.height - stripHeight) * 0.5,
+          stripWidth,
+          stripHeight
+        );
+
+        //throw new Error('Rendering textures not implemented');
       }
     }
   }
@@ -165,6 +194,14 @@ export const showInfo = (ctx: CanvasRenderingContext2D, player: Player) => {
   ctx.textAlign = 'right';
   ctx.font = '12px Arial';
   ctx.fillStyle = 'white';
-  ctx.fillText(`Speed: ${player.velocity.mag()}`, ctx.canvas.width - 20, ctx.canvas.height - 35);
-  ctx.fillText(`Direction: ${Math.round(player.direction * 180 / Math.PI)}`, ctx.canvas.width - 20, ctx.canvas.height - 20);
+  ctx.fillText(
+    `Speed: ${player.velocity.mag()}`,
+    ctx.canvas.width - 20,
+    ctx.canvas.height - 35
+  );
+  ctx.fillText(
+    `Direction: ${Math.round((player.direction * 180) / Math.PI)}`,
+    ctx.canvas.width - 20,
+    ctx.canvas.height - 20
+  );
 };
