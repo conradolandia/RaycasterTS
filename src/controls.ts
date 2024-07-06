@@ -56,9 +56,8 @@ export const controls = (
 
     player.direction += angularVelocity * deltaTime;
     const newPosition = player.position.add(player.velocity.scale(deltaTime));
-    const cell = scene.getCell(newPosition);
 
-    if(cell === null || cell === undefined) {
+    if(scene.validPosition(newPosition)) {
       player.position = newPosition;
     }
 

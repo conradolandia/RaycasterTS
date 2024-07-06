@@ -1,6 +1,6 @@
 import { Scene, Player, Vector2, Color } from './types';
 
-import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_RESOLUTION } from './constants';
+import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_RESOLUTION, PLAYER_SIZE } from './constants';
 
 // Map to screen
 export const mapToScreen = (
@@ -45,6 +45,20 @@ export const filledCircle = (
   ctx.fill();
   ctx.closePath();
 };
+
+export const filledRect = (
+  ctx: CanvasRenderingContext2D,
+  position: Vector2,
+  size: number,
+  color: string | CanvasGradient | CanvasPattern
+) => {
+  ctx.beginPath();
+  ctx.fillStyle = color;
+  const np = position.map((x) => x - (size / 2));
+  ctx.fillRect(...np.array(), size, size);
+  ctx.closePath();
+}
+
 
 // Ray step function
 export const rayStep = (p1: Vector2, p2: Vector2): Vector2 => {

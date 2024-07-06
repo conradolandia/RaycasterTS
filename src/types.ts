@@ -1,40 +1,76 @@
-import { NEAR_CLIPPING_PLANE, FOV } from './constants';
+import { NEAR_CLIPPING_PLANE, FOV, PLAYER_SIZE } from './constants';
 
-export type Cell = Color | HTMLImageElement | null;
-//export type Scene = Array<Array<Cell>>;
+export class Color {
+  r: number;
+  g: number;
+  b: number;
+  a: number;
 
-export class Scene {
-  cells: Cell[];
-  width: number;
-  height: number;
-
-  constructor(cells: Cell[][]) {
-    this.height = cells.length;
-    this.width = Number.MIN_VALUE;
-    for (let row of cells) {
-      this.width = Math.max(this.width, row.length);
-    }
-    this.cells = [];
-    for (let row of cells) {
-      this.cells = this.cells.concat(row);
-      for (let i = 0; i < this.width - row.length; i++) {
-        this.cells.push(null);
-      }
-    }
+  constructor(r: number, g: number, b: number, a: number) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
   }
 
-  size(): Vector2 {
-    return new Vector2(this.width, this.height);
+  static red(): Color {
+    return new Color(1, 0, 0, 1);
   }
 
-  contains(p: Vector2): boolean {
-    return 0 <= p.x && p.x < this.width && 0 <= p.y && p.y < this.height;
+  static green(): Color {
+    return new Color(0, 1, 0, 1);
   }
 
-  getCell(p: Vector2): Cell | undefined {
-    if (!this.contains(p)) return undefined;
-    const fp = p.floor();
-    return this.cells[fp.y * this.width + fp.x];
+  static blue(): Color {
+    return new Color(0, 0, 1, 1);
+  }
+
+  static yellow(): Color {
+    return new Color(1, 1, 0, 1);
+  }
+
+  static magenta(): Color {
+    return new Color(1, 0, 1, 1);
+  }
+
+  static cyan(): Color {
+    return new Color(0, 1, 1, 1);
+  }
+
+  static purple(): Color {
+    return new Color(1, 0, 1, 1);
+  }
+
+  static white(): Color {
+    return new Color(1, 1, 1, 1);
+  }
+
+  static black(): Color {
+    return new Color(0, 0, 0, 1);
+  }
+
+  brightness(factor: number): Color {
+    return new Color(factor * this.r, factor * this.g, factor * this.b, this.a);
+  }
+
+  toArray(): [number, number, number, number] {
+    return [
+      Math.floor(this.r * 255),
+      Math.floor(this.g * 255),
+      Math.floor(this.b * 255),
+      this.a,
+    ];
+  }
+
+  toStyle(): string {
+    return (
+      'rgba(' +
+      `${Math.floor(this.r * 255)},` +
+      `${Math.floor(this.g * 255)},` +
+      `${Math.floor(this.b * 255)},` +
+      `${this.a}` +
+      ')'
+    );
   }
 }
 
@@ -53,6 +89,10 @@ export class Vector2 {
 
   static fromAngle(angle: number): Vector2 {
     return new Vector2(Math.cos(angle), Math.sin(angle));
+  }
+
+  static fromScalar(scalar: number): Vector2 {
+    return new Vector2(scalar, scalar);
   }
 
   array(): [number, number] {
@@ -133,6 +173,61 @@ export class Vector2 {
   }
 }
 
+export type Cell = Color | HTMLImageElement | null;
+
+export class Scene {
+  cells: Cell[];
+  width: number;
+  height: number;
+
+  constructor(cells: Cell[][]) {
+    this.height = cells.length;
+    this.width = Number.MIN_VALUE;
+    for (let row of cells) {
+      this.width = Math.max(this.width, row.length);
+    }
+    this.cells = [];
+    for (let row of cells) {
+      this.cells = this.cells.concat(row);
+      for (let i = 0; i < this.width - row.length; i++) {
+        this.cells.push(null);
+      }
+    }
+  }
+
+  size(): Vector2 {
+    return new Vector2(this.width, this.height);
+  }
+
+  contains(p: Vector2): boolean {
+    return 0 <= p.x && p.x < this.width && 0 <= p.y && p.y < this.height;
+  }
+
+  getCell(p: Vector2): Cell | undefined {
+    if (!this.contains(p)) return undefined;
+    const fp = p.floor();
+    return this.cells[fp.y * this.width + fp.x];
+  }
+
+  isWall(p: Vector2): boolean {
+    const c = this.getCell(p);
+    return c !== null && c !== undefined;
+  }
+
+  validPosition(newPosition: Vector2): boolean {
+    const corner = newPosition.sub(Vector2.fromScalar(PLAYER_SIZE*0.5));
+    for (let dx = 0; dx < 2; dx++) {
+      for (let dy = 0; dy < 2; dy++) {
+        if (this.isWall(corner.add(new Vector2(dx, dy).scale(PLAYER_SIZE)))) {
+          return false
+        }
+      }
+    }
+
+    return true
+  }
+}
+
 export class Player {
   position: Vector2;
   direction: number;
@@ -153,79 +248,5 @@ export class Player {
     const p2 = p.add(p.sub(this.position).rotate90().norm().scale(l));
 
     return [p1, p2];
-  }
-}
-
-export class Color {
-  r: number;
-  g: number;
-  b: number;
-  a: number;
-
-  constructor(r: number, g: number, b: number, a: number) {
-    this.r = r;
-    this.g = g;
-    this.b = b;
-    this.a = a;
-  }
-
-  static red(): Color {
-    return new Color(1, 0, 0, 1);
-  }
-
-  static green(): Color {
-    return new Color(0, 1, 0, 1);
-  }
-
-  static blue(): Color {
-    return new Color(0, 0, 1, 1);
-  }
-
-  static yellow(): Color {
-    return new Color(1, 1, 0, 1);
-  }
-
-  static magenta(): Color {
-    return new Color(1, 0, 1, 1);
-  }
-
-  static cyan(): Color {
-    return new Color(0, 1, 1, 1);
-  }
-
-  static purple(): Color {
-    return new Color(1, 0, 1, 1);
-  }
-
-  static white(): Color {
-    return new Color(1, 1, 1, 1);
-  }
-
-  static black(): Color {
-    return new Color(0, 0, 0, 1);
-  }
-
-  brightness(factor: number): Color {
-    return new Color(factor * this.r, factor * this.g, factor * this.b, this.a);
-  }
-
-  toArray(): [number, number, number, number] {
-    return [
-      Math.floor(this.r * 255),
-      Math.floor(this.g * 255),
-      Math.floor(this.b * 255),
-      this.a,
-    ];
-  }
-
-  toStyle(): string {
-    return (
-      'rgba(' +
-      `${Math.floor(this.r * 255)},` +
-      `${Math.floor(this.g * 255)},` +
-      `${Math.floor(this.b * 255)},` +
-      `${this.a}` +
-      ')'
-    );
   }
 }

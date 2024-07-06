@@ -8,12 +8,13 @@ import {
   CANVAS_HEIGHT,
   WALL_COLOR,
   GRID_SCALED_LINE_WIDTH,
+  PLAYER_SIZE,
 } from './constants';
 
 // Utils
 import {
   strokeLine,
-  filledCircle,
+  filledRect,
   canvasSize,
   renderWorld,
 } from './utils';
@@ -68,7 +69,7 @@ const minimap = (
   }
 
   // Draw the player and the POV
-  filledCircle(ctx, player.position, 0.2, 'magenta');
+  filledRect(ctx, player.position, PLAYER_SIZE, 'magenta');
   const [p1, p2] = player.fov();
 
   // Draw the camera
@@ -113,11 +114,12 @@ const renderGame = (
     throw new Error('Could not get 2D context from canvas');
   }
 
-  const ysangrim = await loadImageData('./assets/images/pacho.png').catch(() => Color.cyan());
   const wall1 = await loadImageData('./assets/images/wall1_color.png').catch(() => Color.purple());
   const wall2 = await loadImageData('./assets/images/wall2_color.png').catch(() => Color.purple());
   const wall3 = await loadImageData('./assets/images/wall3_color.png').catch(() => Color.purple());
   const wall4 = await loadImageData('./assets/images/wall4_color.png').catch(() => Color.purple());
+
+  const ysangrim = await loadImageData('./assets/images/pacho.png').catch(() => Color.cyan());
 
   // Create the scene
   const scene: Scene = new Scene([
