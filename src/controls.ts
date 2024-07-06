@@ -21,34 +21,47 @@ export const controls = (
     let angularVelocity = 0.0;
     const deltaTime = prevTimestamp ? (timestamp - prevTimestamp) / 1000 : 0;
     prevTimestamp = timestamp;
+
     if (movingForward) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction).scale(PLAYER_SPEED)
       );
     }
+
     if (movingBackward) {
       player.velocity = player.velocity.sub(
         Vector2.fromAngle(player.direction).scale(PLAYER_SPEED)
       );
     }
+
     if (movingLeft) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction - Math.PI * 0.5).scale(PLAYER_SPEED)
       );
     }
+
     if (movingRight) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction + Math.PI * 0.5).scale(PLAYER_SPEED)
       );
     }
+
     if (rotatingLeft) {
-      angularVelocity -= Math.PI / PLAYER_SPEED * 0.8;
+      angularVelocity -= Math.PI / PLAYER_SPEED * 0.5;
     }
+
     if (rotatingRight) {
-      angularVelocity += Math.PI / PLAYER_SPEED * 0.8;
+      angularVelocity += Math.PI / PLAYER_SPEED * 0.5;
     }
-    player.position = player.position.add(player.velocity.scale(deltaTime));
+
     player.direction += angularVelocity * deltaTime;
+    const newPosition = player.position.add(player.velocity.scale(deltaTime));
+    const cell = scene.getCell(newPosition);
+
+    if(cell === null || cell === undefined) {
+      player.position = newPosition;
+    }
+
     callback(ctx, scene, player, BG_COLOR);
     window.requestAnimationFrame(frame);
   };

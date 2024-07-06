@@ -1,8 +1,42 @@
 import { NEAR_CLIPPING_PLANE, FOV } from './constants';
 
-export type Scene = Array<
-  Array<Color | HTMLImageElement | null>
->;
+export type Cell = Color | HTMLImageElement | null;
+//export type Scene = Array<Array<Cell>>;
+
+export class Scene {
+  cells: Cell[];
+  width: number;
+  height: number;
+
+  constructor(cells: Cell[][]) {
+    this.height = cells.length;
+    this.width = Number.MIN_VALUE;
+    for (let row of cells) {
+      this.width = Math.max(this.width, row.length);
+    }
+    this.cells = [];
+    for (let row of cells) {
+      this.cells = this.cells.concat(row);
+      for (let i = 0; i < this.width - row.length; i++) {
+        this.cells.push(null);
+      }
+    }
+  }
+
+  size(): Vector2 {
+    return new Vector2(this.width, this.height);
+  }
+
+  contains(p: Vector2): boolean {
+    return 0 <= p.x && p.x < this.width && 0 <= p.y && p.y < this.height;
+  }
+
+  getCell(p: Vector2): Cell | undefined {
+    if (!this.contains(p)) return undefined;
+    const fp = p.floor();
+    return this.cells[fp.y * this.width + fp.x];
+  }
+}
 
 export class Vector2 {
   x: number;
@@ -76,6 +110,14 @@ export class Vector2 {
     const magnitude = this.mag();
     if (magnitude === 0) return new Vector2(0, 0);
     return new Vector2(this.x / magnitude, this.y / magnitude);
+  }
+
+  floor(): Vector2 {
+    return new Vector2(Math.floor(this.x), Math.floor(this.y));
+  }
+
+  map(callback: (n: number) => number): Vector2 {
+    return new Vector2(callback(this.x), callback(this.y));
   }
 
   dot(that: Vector2): number {

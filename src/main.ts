@@ -15,9 +15,7 @@ import {
   strokeLine,
   filledCircle,
   canvasSize,
-  sceneSize,
   renderWorld,
-  showInfo,
 } from './utils';
 
 import { controls } from './controls';
@@ -35,7 +33,7 @@ const minimap = (
   ctx.save();
 
   // Grid size
-  const gridSize = sceneSize(scene);
+  const gridSize = scene.size();
 
   // Scale and translate the canvas
   ctx.translate(...position.array());
@@ -49,13 +47,12 @@ const minimap = (
   // Draw the walls
   for (let y = 0; y < gridSize.y; y++) {
     for (let x = 0; x < gridSize.x; x++) {
-      const cell = scene[y][x];
+      const cell = scene.getCell(new Vector2(x, y));
       if (cell instanceof Color) {
         ctx.fillStyle = cell.toStyle();
         ctx.fillRect(x, y, 1, 1);
       } else if (cell instanceof HTMLImageElement) {
         ctx.drawImage(cell, x, y, 1, 1);
-        //ctx.putImageData(cell, x, y);
       }
     }
   }
@@ -91,7 +88,7 @@ const renderGame = (
 ) => {
   const minimapPosition = Vector2.zero().add(canvasSize(ctx).scale(0.015));
   const cellSize = ctx.canvas.width * 0.02;
-  const minimapSize = sceneSize(scene).scale(cellSize);
+  const minimapSize = scene.size().scale(cellSize);
   ctx.fillStyle = fillColor;
   ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   renderWorld(ctx, scene, player);
@@ -116,23 +113,26 @@ const renderGame = (
     throw new Error('Could not get 2D context from canvas');
   }
 
-  const ysangrim = await loadImageData('/pacho.png');
-  console.log(ysangrim);
+  const ysangrim = await loadImageData('./assets/images/pacho.png').catch(() => Color.cyan());
+  const wall1 = await loadImageData('./assets/images/wall1_color.png').catch(() => Color.purple());
+  const wall2 = await loadImageData('./assets/images/wall2_color.png').catch(() => Color.purple());
+  const wall3 = await loadImageData('./assets/images/wall3_color.png').catch(() => Color.purple());
+  const wall4 = await loadImageData('./assets/images/wall4_color.png').catch(() => Color.purple());
 
   // Create the scene
-  const scene: Scene = [
-    [null, null, ysangrim, ysangrim, null, null, null, null, null],
-    [null, null, null, ysangrim, null, null, null, null, null],
-    [null, ysangrim, ysangrim, ysangrim, null, null, null, null, null],
+  const scene: Scene = new Scene([
+    [null, null, wall1, wall2, null, null, null, null, null],
+    [null, null, null, wall3, null, null, null, null, null],
+    [null, wall4, wall1, wall2, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null, null],
     [null, null, null, null, null, ysangrim, null, null, null],
     [null, null, null, null, null, null, null, null, null],
-  ];
+  ]);
 
   // Create the player
   const player = new Player(
-    sceneSize(scene).mul(new Vector2(0.63, 0.63)),
+    scene.size().mul(new Vector2(0.63, 0.63)),
     Math.PI * 1.25,
     Vector2.zero()
   );

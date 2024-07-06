@@ -80,7 +80,7 @@ export const castRay = (scene: Scene, p1: Vector2, p2: Vector2): Vector2 => {
   let start = p1;
   while (start.sqrtDistanceTo(p2) < FAR_CLIPPING_PLANE ** 2) {
     const c = hittingCell(p1, p2);
-    if (insideScene(scene, c) && scene[c.y][c.x] !== null) break;
+    if (scene.getCell(c) !== undefined && scene.getCell(c) !== null) break;
     const p3 = rayStep(p1, p2);
     p1 = p2;
     p2 = p3;
@@ -93,16 +93,6 @@ export const canvasSize = (ctx: CanvasRenderingContext2D): Vector2 => {
   return new Vector2(ctx.canvas.width, ctx.canvas.height);
 };
 
-// Scene size
-export const sceneSize = (scene: Scene): Vector2 => {
-  const y = scene.length;
-  let x = Number.MIN_VALUE;
-  for (let row of scene) {
-    x = Math.max(x, row.length);
-  }
-  return new Vector2(x, y);
-};
-
 // hitting cell
 export const hittingCell = (p1: Vector2, p2: Vector2): Vector2 => {
   const d = p2.sub(p1);
@@ -110,12 +100,6 @@ export const hittingCell = (p1: Vector2, p2: Vector2): Vector2 => {
     Math.floor(p2.x + Math.sign(d.x) * EPSILON),
     Math.floor(p2.y + Math.sign(d.y) * EPSILON)
   );
-};
-
-// Inside scene
-export const insideScene = (scene: Scene, p: Vector2): boolean => {
-  const size = sceneSize(scene);
-  return p.x >= 0 && p.x < size.x && p.y >= 0 && p.y < size.y;
 };
 
 export const distancePointToLine = (p1: Vector2, p2: Vector2, p0: Vector2) => {
@@ -145,46 +129,38 @@ export const renderWorld = (
 
     const c = hittingCell(player.position, point);
 
-    if (insideScene(scene, c)) {
-      const cell = scene[c.y][c.x];
-      const position = point.sub(player.position);
-      const distance = Vector2.fromAngle(player.direction);
-      const stripHeight = ctx.canvas.height / position.dot(distance);
-      if (cell instanceof Color) {
-        ctx.fillStyle = cell.brightness(1 / position.dot(distance)).toStyle();
-        ctx.fillRect(
-          x * stripWidth,
-          (ctx.canvas.height - stripHeight) * 0.5,
-          stripWidth,
-          stripHeight
-        );
-      } else if (cell instanceof HTMLImageElement) {
-        const t = point.sub(c);
-
-        let u = 0;
-        if (
-          (Math.abs(t.x) < EPSILON || Math.abs(t.x - 1) < EPSILON) &&
-          t.y > 0
-        ) {
-          u = t.y;
-        } else {
-          u = t.x;
-        }
-
-        ctx.drawImage(
-          cell,
-          u * cell.width,
-          0,
-          1,
-          cell.height,
-          x * stripWidth,
-          (ctx.canvas.height - stripHeight) * 0.5,
-          stripWidth,
-          stripHeight
-        );
-
-        //throw new Error('Rendering textures not implemented');
+    const cell = scene.getCell(c);
+    const position = point.sub(player.position);
+    const distance = Vector2.fromAngle(player.direction);
+    const stripHeight = ctx.canvas.height / position.dot(distance);
+    if (cell instanceof Color) {
+      ctx.fillStyle = cell.brightness(1 / position.dot(distance)).toStyle();
+      ctx.fillRect(
+        x * stripWidth,
+        (ctx.canvas.height - stripHeight) * 0.5,
+        stripWidth,
+        stripHeight
+      );
+    } else if (cell instanceof HTMLImageElement) {
+      const t = point.sub(c);
+      let u = 0;
+      if ((Math.abs(t.x) < EPSILON || Math.abs(t.x - 1) < EPSILON) && t.y > 0) {
+        u = t.y;
+      } else {
+        u = t.x;
       }
+
+      ctx.drawImage(
+        cell,
+        u * cell.width,
+        0,
+        1,
+        cell.height,
+        x * stripWidth,
+        (ctx.canvas.height - stripHeight) * 0.5,
+        stripWidth,
+        stripHeight
+      );
     }
   }
 };
