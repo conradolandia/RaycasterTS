@@ -1,12 +1,12 @@
-import { Scene, Player, Vector2 } from './types';
-import { PLAYER_SPEED } from './constants';
+import { Scene, Player, Vector2 } from './types'
+import { PLAYER_SPEED } from './constants'
 
-let movingLeft = false;
-let movingRight = false;
-let rotatingLeft = false;
-let rotatingRight = false;
-let movingForward = false;
-let movingBackward = false;
+let movingLeft = false
+let movingRight = false
+let rotatingLeft = false
+let rotatingRight = false
+let movingForward = false
+let movingBackward = false
 
 export const controls = (
   ctx: CanvasRenderingContext2D,
@@ -14,107 +14,107 @@ export const controls = (
   player: Player,
   callback: any
 ) => {
-  let prevTimestamp: number = 0;
+  let prevTimestamp: number = 0
 
   const frame = (timestamp: number) => {
-    player.velocity = Vector2.zero();
-    let angularVelocity = 0.0;
-    const deltaTime = prevTimestamp ? (timestamp - prevTimestamp) / 1000 : 0;
-    prevTimestamp = timestamp;
+    player.velocity = Vector2.zero()
+    let angularVelocity = 0.0
+    const deltaTime = prevTimestamp ? (timestamp - prevTimestamp) / 1000 : 0
+    prevTimestamp = timestamp
 
     if (movingForward) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction).scale(PLAYER_SPEED)
-      );
+      )
     }
 
     if (movingBackward) {
       player.velocity = player.velocity.sub(
         Vector2.fromAngle(player.direction).scale(PLAYER_SPEED)
-      );
+      )
     }
 
     if (movingLeft) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction - Math.PI * 0.5).scale(PLAYER_SPEED)
-      );
+      )
     }
 
     if (movingRight) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction + Math.PI * 0.5).scale(PLAYER_SPEED)
-      );
+      )
     }
 
     if (rotatingLeft) {
-      angularVelocity -= Math.PI / PLAYER_SPEED;
+      angularVelocity -= Math.PI / PLAYER_SPEED
     }
 
     if (rotatingRight) {
-      angularVelocity += Math.PI / PLAYER_SPEED;
+      angularVelocity += Math.PI / PLAYER_SPEED
     }
 
-    player.direction += angularVelocity * deltaTime;
-    const newPosition = player.position.add(player.velocity.scale(deltaTime));
+    player.direction += angularVelocity * deltaTime
+    const newPosition = player.position.add(player.velocity.scale(deltaTime))
 
     if(scene.validPosition(newPosition)) {
-      player.position = newPosition;
+      player.position = newPosition
     }
 
-    callback(ctx, scene, player, "hsla(220, 30%, 50%, 1.0)");
-    window.requestAnimationFrame(frame);
-  };
+    callback(ctx, scene, player, "hsla(220, 30%, 50%, 1.0)")
+    window.requestAnimationFrame(frame)
+  }
 
   window.requestAnimationFrame((timestamp: number) => {
-    prevTimestamp = timestamp;
-    window.requestAnimationFrame(frame);
-  });
+    prevTimestamp = timestamp
+    window.requestAnimationFrame(frame)
+  })
 
   // Handle input
 
   window.addEventListener('keydown', e => {
     switch (e.code) {
       case 'ArrowUp':
-        movingForward = true;
-        break;
+        movingForward = true
+        break
       case 'ArrowDown':
-        movingBackward = true;
-        break;
+        movingBackward = true
+        break
       case 'ArrowLeft':
-        movingLeft = true;
-        break;
+        movingLeft = true
+        break
       case 'ArrowRight':
-        movingRight = true;
-        break;
+        movingRight = true
+        break
       case 'KeyD':
-        rotatingRight = true;
-        break;
+        rotatingRight = true
+        break
       case 'KeyA':
-        rotatingLeft = true;
-        break;
+        rotatingLeft = true
+        break
     }
-  });
+  })
 
   window.addEventListener('keyup', e => {
     switch (e.code) {
       case 'ArrowUp':
-        movingForward = false;
-        break;
+        movingForward = false
+        break
       case 'ArrowDown':
-        movingBackward = false;
-        break;
+        movingBackward = false
+        break
       case 'ArrowLeft':
-        movingLeft = false;
-        break;
+        movingLeft = false
+        break
       case 'ArrowRight':
-        movingRight = false;
-        break;
+        movingRight = false
+        break
       case 'KeyD':
-        rotatingRight = false;
-        break;
+        rotatingRight = false
+        break
       case 'KeyA':
-        rotatingLeft = false;
-        break;
+        rotatingLeft = false
+        break
     }
-  });
-};
+  })
+}
