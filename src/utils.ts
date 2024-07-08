@@ -1,14 +1,14 @@
 import { Scene, Player, Vector2, Color } from './types';
 
-import { EPSILON, FAR_CLIPPING_PLANE, SCREEN_RESOLUTION, PLAYER_SIZE } from './constants';
-
-// Map to screen
-export const mapToScreen = (
-  ctx: CanvasRenderingContext2D,
-  p: Vector2
-): Vector2 => {
-  return new Vector2(p.x * ctx.canvas.width, p.y * ctx.canvas.height);
-};
+import {
+  EPSILON,
+  FAR_CLIPPING_PLANE,
+  SCREEN_WIDTH,
+  SCREEN_HEIGHT,
+  WALL_COLOR,
+  GRID_SCALED_LINE_WIDTH,
+  PLAYER_SIZE,
+} from './constants';
 
 // Snap to grid
 export const snapToGrid = (x: number, dx: number): number => {
@@ -46,6 +46,7 @@ export const filledCircle = (
   ctx.closePath();
 };
 
+// Draw a filled rectangle
 export const filledRect = (
   ctx: CanvasRenderingContext2D,
   position: Vector2,
@@ -54,11 +55,10 @@ export const filledRect = (
 ) => {
   ctx.beginPath();
   ctx.fillStyle = color;
-  const np = position.map((x) => x - (size / 2));
+  const np = position.map(x => x - size / 2);
   ctx.fillRect(...np.array(), size, size);
   ctx.closePath();
-}
-
+};
 
 // Ray step function
 export const rayStep = (p1: Vector2, p2: Vector2): Vector2 => {
@@ -90,6 +90,7 @@ export const rayStep = (p1: Vector2, p2: Vector2): Vector2 => {
   return p3;
 };
 
+// Cast ray
 export const castRay = (scene: Scene, p1: Vector2, p2: Vector2): Vector2 => {
   let start = p1;
   while (start.sqrtDistanceTo(p2) < FAR_CLIPPING_PLANE ** 2) {
@@ -116,6 +117,7 @@ export const hittingCell = (p1: Vector2, p2: Vector2): Vector2 => {
   );
 };
 
+// distance point to line
 export const distancePointToLine = (p1: Vector2, p2: Vector2, p0: Vector2) => {
   const dy = p2.y - p1.y;
   const dx = p2.x - p1.x;
@@ -126,38 +128,131 @@ export const distancePointToLine = (p1: Vector2, p2: Vector2, p0: Vector2) => {
 };
 
 // Render
+// Minimap
+export const minimap = (
+  ctx: CanvasRenderingContext2D,
+  player: Player,
+  position: Vector2,
+  size: Vector2,
+  scene: Scene
+): Vector2 | void => {
+  // Clear the context
+  ctx.save();
+
+  // Grid size
+  const gridSize = scene.size();
+
+  // Scale and translate the canvas
+  ctx.translate(...position.array());
+  ctx.scale(...size.div(gridSize).array());
+  ctx.lineWidth = GRID_SCALED_LINE_WIDTH;
+
+  // Fill the minimap
+  ctx.fillStyle = 'black';
+  ctx.fillRect(0, 0, ...gridSize.array());
+
+  // Draw the walls
+  for (let y = 0; y < gridSize.y; y++) {
+    for (let x = 0; x < gridSize.x; x++) {
+      const cell = scene.getCell(new Vector2(x, y));
+      if (cell instanceof Color) {
+        ctx.fillStyle = cell.toStyle();
+        ctx.fillRect(x, y, 1, 1);
+      } else if (cell instanceof HTMLImageElement) {
+        ctx.drawImage(cell, x, y, 1, 1);
+      }
+    }
+  }
+
+  // Draw the lines individually, for x...
+  for (let x = 0; x <= gridSize.x; x++) {
+    strokeLine(ctx, new Vector2(x, 0), new Vector2(x, gridSize.y), WALL_COLOR);
+  }
+
+  // Draw the lines individually, for y...
+  for (let y = 0; y <= gridSize.y; y++) {
+    strokeLine(ctx, new Vector2(0, y), new Vector2(gridSize.x, y), WALL_COLOR);
+  }
+
+  // Draw the player and the POV
+  filledRect(ctx, player.position, PLAYER_SIZE, 'magenta');
+  const [p1, p2] = player.fov();
+
+  // Draw the camera
+  strokeLine(ctx, p1, p2, 'yellow');
+  strokeLine(ctx, player.position, p1, 'yellow');
+  strokeLine(ctx, player.position, p2, 'yellow');
+
+  // Restore the context
+  ctx.restore();
+};
+
+export const renderGame = (
+  ctx: CanvasRenderingContext2D,
+  scene: Scene,
+  player: Player,
+  fillColor: string
+) => {
+  const minimapPosition = Vector2.zero().add(canvasSize(ctx).scale(0.015));
+  const cellSize = ctx.canvas.width * 0.02;
+  const minimapSize = scene.size().scale(cellSize);
+
+  // Sky
+  ctx.fillStyle = fillColor;
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  // Floor
+  ctx.fillStyle = '#202020';
+  ctx.fillRect(
+    0,
+    ctx.canvas.height * 0.5,
+    ctx.canvas.width,
+    ctx.canvas.height * 0.5
+  );
+
+  renderWorld(ctx, scene, player);
+  minimap(ctx, player, minimapPosition, minimapSize, scene);
+  //showInfo(ctx,player);
+};
+
 export const renderWorld = (
   ctx: CanvasRenderingContext2D,
   scene: Scene,
   player: Player
 ) => {
-  const stripWidth = Math.ceil(ctx.canvas.width / SCREEN_RESOLUTION);
+  const pixelWidth = Math.ceil(ctx.canvas.width / SCREEN_WIDTH);
+  const pixelHeight = Math.ceil(ctx.canvas.height / SCREEN_HEIGHT);
+
   const [r1, r2] = player.fov();
 
-  for (let x = 0; x < SCREEN_RESOLUTION; x++) {
+  for (let x = 0; x < SCREEN_WIDTH; x++) {
     const point = castRay(
       scene,
       player.position,
-      r1.lerp(r2, x / SCREEN_RESOLUTION)
+      r1.lerp(r2, x / SCREEN_WIDTH)
     );
 
     const c = hittingCell(player.position, point);
-
     const cell = scene.getCell(c);
     const position = point.sub(player.position);
     const distance = Vector2.fromAngle(player.direction);
-    const stripHeight = ctx.canvas.height / position.dot(distance);
+    const stripHeight = SCREEN_HEIGHT / position.dot(distance);
+    const brightness = 1 / position.dot(distance);
+
+    const resOptions: [number, number, number, number] = [
+      Math.floor(x * pixelWidth),
+      Math.floor((SCREEN_HEIGHT - stripHeight) * 0.5 * pixelHeight),
+      Math.floor(pixelWidth),
+      Math.floor(stripHeight * pixelHeight),
+    ];
+
     if (cell instanceof Color) {
-      ctx.fillStyle = cell.brightness(1 / position.dot(distance)).toStyle();
-      ctx.fillRect(
-        x * stripWidth,
-        (ctx.canvas.height - stripHeight) * 0.5,
-        stripWidth,
-        stripHeight
-      );
+      ctx.fillStyle = cell.brightness(brightness).toStyle();
+      ctx.fillRect(...resOptions);
     } else if (cell instanceof HTMLImageElement) {
       const t = point.sub(c);
       let u = 0;
+
       if ((Math.abs(t.x) < EPSILON || Math.abs(t.x - 1) < EPSILON) && t.y > 0) {
         u = t.y;
       } else {
@@ -166,15 +261,16 @@ export const renderWorld = (
 
       ctx.drawImage(
         cell,
-        u * cell.width,
+        Math.floor(u * cell.width),
         0,
         1,
         cell.height,
-        x * stripWidth,
-        (ctx.canvas.height - stripHeight) * 0.5,
-        stripWidth,
-        stripHeight
+        ...resOptions
       );
+
+      ctx.fillStyle = new Color(0, 0, 0, 1 - brightness).toStyle();
+
+      ctx.fillRect(...resOptions);
     }
   }
 };

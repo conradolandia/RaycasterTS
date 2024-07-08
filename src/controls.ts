@@ -1,12 +1,12 @@
 import { Scene, Player, Vector2 } from './types';
-import { BG_COLOR, PLAYER_SPEED } from './constants';
+import { PLAYER_SPEED } from './constants';
 
-let movingForward = false;
-let movingBackward = false;
 let movingLeft = false;
 let movingRight = false;
 let rotatingLeft = false;
 let rotatingRight = false;
+let movingForward = false;
+let movingBackward = false;
 
 export const controls = (
   ctx: CanvasRenderingContext2D,
@@ -47,11 +47,11 @@ export const controls = (
     }
 
     if (rotatingLeft) {
-      angularVelocity -= Math.PI / PLAYER_SPEED * 0.5;
+      angularVelocity -= Math.PI / PLAYER_SPEED;
     }
 
     if (rotatingRight) {
-      angularVelocity += Math.PI / PLAYER_SPEED * 0.5;
+      angularVelocity += Math.PI / PLAYER_SPEED;
     }
 
     player.direction += angularVelocity * deltaTime;
@@ -61,7 +61,7 @@ export const controls = (
       player.position = newPosition;
     }
 
-    callback(ctx, scene, player, BG_COLOR);
+    callback(ctx, scene, player, "hsla(220, 30%, 50%, 1.0)");
     window.requestAnimationFrame(frame);
   };
 

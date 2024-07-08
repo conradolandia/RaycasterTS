@@ -74,6 +74,7 @@ export class Color {
   }
 }
 
+
 export class Vector2 {
   x: number;
   y: number;
@@ -215,6 +216,7 @@ export class Scene {
   }
 
   validPosition(newPosition: Vector2): boolean {
+    // TODO: try a circle instead of a square
     const corner = newPosition.sub(Vector2.fromScalar(PLAYER_SIZE*0.5));
     for (let dx = 0; dx < 2; dx++) {
       for (let dy = 0; dy < 2; dy++) {
