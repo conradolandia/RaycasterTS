@@ -220,8 +220,11 @@ export const renderWorld = (
   scene: Scene,
   player: Player
 ) => {
-  const pixelWidth = Math.ceil(ctx.canvas.width / SCREEN_WIDTH)
-  const pixelHeight = Math.ceil(ctx.canvas.height / SCREEN_HEIGHT)
+  ctx.save()
+  ctx.scale(
+    ctx.canvas.width / SCREEN_WIDTH,
+    ctx.canvas.height / SCREEN_HEIGHT
+  )
 
   const [r1, r2] = player.fov()
 
@@ -240,10 +243,10 @@ export const renderWorld = (
     const brightness = 1 / position.dot(distance)
 
     const resOptions: [number, number, number, number] = [
-      Math.floor(x * pixelWidth),
-      Math.floor((SCREEN_HEIGHT - stripHeight) * 0.5 * pixelHeight),
-      Math.floor(pixelWidth),
-      Math.floor(stripHeight * pixelHeight),
+      x,
+      (SCREEN_HEIGHT - stripHeight) * 0.5,
+      1,
+      stripHeight,
     ]
 
     if (cell instanceof Color) {
@@ -269,10 +272,11 @@ export const renderWorld = (
       )
 
       ctx.fillStyle = new Color(0, 0, 0, 1 - brightness).toStyle()
-
       ctx.fillRect(...resOptions)
     }
   }
+
+  ctx.restore()
 }
 
 // Show the speed of the game on a string in the top right corener

@@ -55,10 +55,15 @@ export const controls = (
     }
 
     player.direction += angularVelocity * deltaTime
-    const newPosition = player.position.add(player.velocity.scale(deltaTime))
 
-    if(scene.validPosition(newPosition)) {
-      player.position = newPosition
+    const nx = player.position.x + player.velocity.x * deltaTime
+    if(scene.validPosition(new Vector2(nx, player.position.y))) {
+      player.position.x = nx
+    }
+
+    const ny = player.position.y + player.velocity.y * deltaTime
+    if(scene.validPosition(new Vector2(player.position.x, ny))) {
+      player.position.y = ny
     }
 
     callback(ctx, scene, player, "hsla(220, 30%, 50%, 1.0)")
