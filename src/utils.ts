@@ -210,12 +210,12 @@ export const renderGame = (
     ctx.canvas.height * 0.5
   )
 
-  renderWorld(ctx, scene, player)
+  renderWalls(ctx, scene, player)
   minimap(ctx, player, minimapPosition, minimapSize, scene)
   //showInfo(ctx,player)
 }
 
-export const renderWorld = (
+export const renderWalls = (
   ctx: CanvasRenderingContext2D,
   scene: Scene,
   player: Player
