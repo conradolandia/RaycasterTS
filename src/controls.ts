@@ -22,6 +22,7 @@ export const controls = (
     const deltaTime = prevTimestamp ? (timestamp - prevTimestamp) / 1000 : 0;
     prevTimestamp = timestamp;
 
+    // Move the player
     if (movingForward) {
       player.velocity = player.velocity.add(
         Vector2.fromAngle(player.direction).scale(PLAYER_SPEED)
@@ -76,7 +77,6 @@ export const controls = (
   });
 
   // Handle input
-
   window.addEventListener('keydown', e => {
     switch (e.code) {
       case 'ArrowUp':
@@ -100,6 +100,7 @@ export const controls = (
     }
   });
 
+  // Handle input
   window.addEventListener('keyup', e => {
     switch (e.code) {
       case 'ArrowUp':

@@ -184,16 +184,14 @@ export const minimap = (
   // Draw the player
   filledRect(ctx, player.position, PLAYER_SIZE, 'magenta', true);
 
-  // Draw the FOV, for both near and far planes
-  const [far1, far2] = player.fov(FAR_CLIPPING_PLANE);
-  const [near1, near2] = player.fov(NEAR_CLIPPING_PLANE);
-
   // Draw the FAR projection of the FOV
-  strokeLine(ctx, far1, far2, 'cyan');
-  strokeLine(ctx, player.position, far1, 'cyan');
-  strokeLine(ctx, player.position, far2, 'cyan');
+  //const [far1, far2] = player.fov(FAR_CLIPPING_PLANE);
+  //strokeLine(ctx, far1, far2, 'cyan');
+  //strokeLine(ctx, player.position, far1, 'cyan');
+  //strokeLine(ctx, player.position, far2, 'cyan');
 
   // Draw the NEAR projection of the FOV
+  const [near1, near2] = player.fov(NEAR_CLIPPING_PLANE);
   strokeLine(ctx, near1, near2, 'yellow');
   strokeLine(ctx, player.position, near1, 'yellow');
   strokeLine(ctx, player.position, near2, 'yellow');
@@ -270,6 +268,28 @@ export const renderFloor = (
 ) => {
   ctx.save();
   ctx.scale(ctx.canvas.width / SCREEN_WIDTH, ctx.canvas.height / SCREEN_HEIGHT);
+
+  // Draw the steps of the FAR projection of the FOV
+  let plane = NEAR_CLIPPING_PLANE;
+  let y = SCREEN_HEIGHT - 1;
+  for (; plane < FAR_CLIPPING_PLANE; plane += 0.25, y -= 1) {
+    const [p1, p2] = player.fov(plane);
+    for (let x = 0; x < SCREEN_WIDTH; x += 1) {
+      const p = p1.lerp(p2, x / SCREEN_WIDTH);
+      const t = p.map(x => x - Math.floor(x));
+      const floor = scene.getFloor(p);
+      if (floor instanceof HTMLImageElement) {
+        ctx.drawImage(
+          floor,
+          Math.floor(t.x * floor.width),
+          Math.floor(t.y * floor.height),
+          1,
+          1,
+          x,y,1,1
+        );
+      }
+    }
+  }
 
   ctx.restore();
 };
