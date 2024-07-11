@@ -181,8 +181,17 @@ export const minimap = (
     strokeLine(ctx, new Vector2(0, y), new Vector2(gridSize.x, y), WALL_COLOR);
   }
 
+  // Adjust the player position to the minimap
+  const adjustmentPosition = new Vector2(PLAYER_SIZE / 2, PLAYER_SIZE / 2);
+
   // Draw the player
-  filledRect(ctx, player.position, PLAYER_SIZE, 'magenta', true);
+  filledRect(
+    ctx,
+    player.position.sub(adjustmentPosition),
+    PLAYER_SIZE,
+    'magenta',
+    true
+  );
 
   // Draw the FAR projection of the FOV
   //const [far1, far2] = player.fov(FAR_CLIPPING_PLANE);
@@ -191,7 +200,7 @@ export const minimap = (
   //strokeLine(ctx, player.position, far2, 'cyan');
 
   // Draw the NEAR projection of the FOV
-  const [near1, near2] = player.fov(NEAR_CLIPPING_PLANE);
+  const [near1, near2] = player.fov();
   strokeLine(ctx, near1, near2, 'yellow');
   strokeLine(ctx, player.position, near1, 'yellow');
   strokeLine(ctx, player.position, near2, 'yellow');
@@ -208,7 +217,7 @@ export const renderWalls = (
   ctx.save();
   ctx.scale(ctx.canvas.width / SCREEN_WIDTH, ctx.canvas.height / SCREEN_HEIGHT);
 
-  const [r1, r2] = player.fov(NEAR_CLIPPING_PLANE);
+  const [r1, r2] = player.fov();
 
   for (let x = 0; x < SCREEN_WIDTH; x++) {
     const point = castRay(
@@ -269,24 +278,28 @@ export const renderFloor = (
   ctx.save();
   ctx.scale(ctx.canvas.width / SCREEN_WIDTH, ctx.canvas.height / SCREEN_HEIGHT);
 
-  // Draw the steps of the FAR projection of the FOV
-  let plane = NEAR_CLIPPING_PLANE;
-  let y = SCREEN_HEIGHT - 1;
-  for (; plane < FAR_CLIPPING_PLANE; plane += 0.25, y -= 1) {
-    const [p1, p2] = player.fov(plane);
-    for (let x = 0; x < SCREEN_WIDTH; x += 1) {
-      const p = p1.lerp(p2, x / SCREEN_WIDTH);
-      const t = p.map(x => x - Math.floor(x));
-      const floor = scene.getFloor(p);
-      if (floor instanceof HTMLImageElement) {
-        ctx.drawImage(
-          floor,
-          Math.floor(t.x * floor.width),
-          Math.floor(t.y * floor.height),
-          1,
-          1,
-          x,y,1,1
-        );
+  const pz = SCREEN_HEIGHT / 2;
+  const [p1, p2] = player.fov();
+  const bp = p1.sub(player.position).mag();
+
+  for (let y = SCREEN_HEIGHT/2; y < SCREEN_HEIGHT; ++y) {
+    const sz = SCREEN_HEIGHT - y - 1;
+
+    const ap = (pz - sz);
+    const b = bp / ap * pz / NEAR_CLIPPING_PLANE;
+    const t1 = player.position.add(p1.sub(player.position).norm().scale(b));
+    const t2 = player.position.add(p2.sub(player.position).norm().scale(b));
+
+    for (let x = 0; x < SCREEN_WIDTH; ++x) {
+      const t = t1.lerp(t2, x / SCREEN_WIDTH);
+      const tile = scene.getFloor(t);
+
+      if (tile instanceof Color) {
+        ctx.fillStyle = tile.toStyle();
+        ctx.fillRect(x, y, 1, 1);
+      } else if (tile instanceof HTMLImageElement) {
+        const c = t.map(x => x - Math.floor(x));
+        ctx.drawImage(tile, Math.floor(c.x*tile.width), Math.floor(c.y * tile.height), 1, 1, x, y, 1, 1);
       }
     }
   }

@@ -35,7 +35,10 @@ import { controls } from './controls';
   const wall4 = await loadImageData('./assets/images/wall4_color.png').catch(
     () => Color.purple()
   );
-  const suelo = await loadImageData('./assets/images/planks.png').catch(() =>
+  const suelo = await loadImageData('./assets/images/wood.png').catch(() =>
+    Color.black()
+  );
+  const planks = await loadImageData('./assets/images/planks.png').catch(() =>
     Color.black()
   );
   const ysangrim = await loadImageData('./assets/images/pacho.png').catch(() =>
@@ -47,10 +50,10 @@ import { controls } from './controls';
     [
       [null, null, wall1, wall2, null, null, null, null, null],
       [null, null, null, wall3, null, null, null, null, null],
-      [null, wall4, wall1, wall2, null, Color.red(), ysangrim, null, null],
+      [null, wall4, wall1, wall2, null, ysangrim, null, null, wall1],
+      [null, null, null, null, null, null, null, null, wall1],
       [null, null, null, null, null, null, null, null, null],
-      [null, null, null, null, null, null, null, null, null],
-      [null, ysangrim, null, null, null, suelo, null, null, null],
+      [null, ysangrim, null, null, null, planks, null, null, null],
       [null, null, null, null, null, null, null, null, null],
     ],
     suelo

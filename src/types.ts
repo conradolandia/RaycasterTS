@@ -1,4 +1,4 @@
-import { FOV, PLAYER_SIZE } from './constants';
+import { FOV, NEAR_CLIPPING_PLANE, PLAYER_SIZE } from './constants';
 
 export class Color {
   r: number;
@@ -47,6 +47,14 @@ export class Color {
 
   static black(): Color {
     return new Color(0, 0, 0, 1);
+  }
+
+  static dark_grey(): Color {
+    return new Color(0.2, 0.2, 0.2, 1);
+  }
+
+  static light_grey(): Color {
+    return new Color(0.3, 0.3, 0.3, 1);
   }
 
   brightness(factor: number): Color {
@@ -180,15 +188,22 @@ export class Scene {
   floor: Block;
   width: number;
   height: number;
+  color1: Color;
+  color2: Color;
 
   constructor(walls: Block[][], floor: Block) {
+    this.color1 = Color.dark_grey();
+    this.color2 = Color.light_grey();
     this.floor = floor;
     this.height = walls.length;
     this.width = Number.MIN_VALUE;
+
     for (let row of walls) {
       this.width = Math.max(this.width, row.length);
     }
+
     this.walls = [];
+
     for (let row of walls) {
       this.walls = this.walls.concat(row);
       for (let i = 0; i < this.width - row.length; i++) {
@@ -211,9 +226,16 @@ export class Scene {
     return this.walls[fp.y * this.width + fp.x];
   }
 
-  getFloor(p: Vector2): Block | undefined {
-    if (!this.contains(p)) return undefined;
-    return this.floor;
+  getFloor(p: Vector2, color = true): Block | undefined {
+    if (color) {
+      const t = p.roundDown();
+      if ((t.x + t.y) % 2 === 0) {
+        return this.color1
+      } else {
+        return this.color2
+      }
+    }
+    return this.floor
   }
 
   isWall(p: Vector2): boolean {
@@ -246,10 +268,10 @@ export class Player {
     this.velocity = velocity;
   }
 
-  fov(clippingPlane: number): [Vector2, Vector2] {
-    const l = Math.tan(FOV * 0.5) * clippingPlane;
+  fov(): [Vector2, Vector2] {
+    const l = Math.tan(FOV * 0.5) * NEAR_CLIPPING_PLANE;
     const p = this.position.add(
-      Vector2.fromAngle(this.direction).scale(clippingPlane)
+      Vector2.fromAngle(this.direction).scale(NEAR_CLIPPING_PLANE)
     );
     const p1 = p.sub(p.sub(this.position).rotate90().norm().scale(l));
     const p2 = p.add(p.sub(this.position).rotate90().norm().scale(l));
