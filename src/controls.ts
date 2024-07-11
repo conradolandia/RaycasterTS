@@ -1,4 +1,4 @@
-import { Scene, Player, Vector2 } from './types';
+import { Scene, Player, Vector2 } from './classes';
 import { PLAYER_SPEED } from './constants';
 
 let movingLeft = false;

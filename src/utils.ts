@@ -1,4 +1,4 @@
-import { Scene, Player, Vector2, Color } from './types';
+import { Scene, Player, Vector2, Color } from './classes';
 
 import {
   EPSILON,
@@ -270,6 +270,43 @@ export const renderWalls = (
   ctx.restore();
 };
 
+export const renderCeiling = (
+  ctx: CanvasRenderingContext2D,
+  player: Player,
+  scene: Scene
+) => {
+  ctx.save();
+  ctx.scale(ctx.canvas.width / SCREEN_WIDTH, ctx.canvas.height / SCREEN_HEIGHT);
+
+  const pz = SCREEN_HEIGHT / 2;
+  const [p1, p2] = player.fov();
+  const bp = p1.sub(player.position).mag();
+
+  for (let y = SCREEN_HEIGHT/2; y < SCREEN_HEIGHT; ++y) {
+    const sz = SCREEN_HEIGHT - y - 1;
+
+    const ap = (pz - sz);
+    const b = bp / ap * pz / NEAR_CLIPPING_PLANE;
+    const t1 = player.position.add(p1.sub(player.position).norm().scale(b));
+    const t2 = player.position.add(p2.sub(player.position).norm().scale(b));
+
+    for (let x = 0; x < SCREEN_WIDTH; ++x) {
+      const t = t1.lerp(t2, x / SCREEN_WIDTH);
+      const tile = scene.getTiles(t, true, true);
+
+      if (tile instanceof Color) {
+        ctx.fillStyle = tile.toStyle();
+        ctx.fillRect(x, sz, 1, 1);
+      } else if (tile instanceof HTMLImageElement) {
+        const c = t.map(x => x - Math.floor(x));
+        ctx.drawImage(tile, Math.floor(c.x*tile.width), Math.floor(c.y * tile.height), 1, 1, x, y, 1, 1);
+      }
+    }
+  }
+
+  ctx.restore();
+};
+
 export const renderFloor = (
   ctx: CanvasRenderingContext2D,
   player: Player,
@@ -292,7 +329,7 @@ export const renderFloor = (
 
     for (let x = 0; x < SCREEN_WIDTH; ++x) {
       const t = t1.lerp(t2, x / SCREEN_WIDTH);
-      const tile = scene.getFloor(t);
+      const tile = scene.getTiles(t);
 
       if (tile instanceof Color) {
         ctx.fillStyle = tile.toStyle();
@@ -330,6 +367,7 @@ export const renderGame = (
     ctx.canvas.height * 0.5
   );
   renderFloor(ctx, player, scene);
+  renderCeiling(ctx, player, scene);
   renderWalls(ctx, scene, player);
   minimap(ctx, player, minimapPosition, minimapSize, scene);
   //showInfo(ctx,player)

@@ -1,7 +1,7 @@
 import './style.css';
 
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './constants';
-import { Player, Scene, Vector2, Color } from './types';
+import { Player, Scene, Vector2, Color } from './classes';
 import { loadImageData } from './textures';
 import { renderGame } from './utils';
 import { controls } from './controls';
@@ -53,7 +53,7 @@ import { controls } from './controls';
       [null, wall4, wall1, wall2, null, ysangrim, null, null, wall1],
       [null, null, null, null, null, null, null, null, wall1],
       [null, null, null, null, null, null, null, null, null],
-      [null, ysangrim, null, null, null, planks, null, null, null],
+      [null, ysangrim, null, null, null, ysangrim, null, null, null],
       [null, null, null, null, null, null, null, null, null],
     ],
     suelo

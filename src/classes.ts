@@ -188,12 +188,16 @@ export class Scene {
   floor: Block;
   width: number;
   height: number;
+  gray1: Color;
+  gray2: Color;
   color1: Color;
   color2: Color;
 
   constructor(walls: Block[][], floor: Block) {
-    this.color1 = Color.dark_grey();
-    this.color2 = Color.light_grey();
+    this.gray1 = Color.dark_grey();
+    this.gray2 = Color.light_grey();
+    this.color1 = Color.red();
+    this.color2 = Color.blue();
     this.floor = floor;
     this.height = walls.length;
     this.width = Number.MIN_VALUE;
@@ -226,13 +230,19 @@ export class Scene {
     return this.walls[fp.y * this.width + fp.x];
   }
 
-  getFloor(p: Vector2, color = true): Block | undefined {
+  getTiles(p: Vector2, color = true, ceiling = false): Block | undefined {
     if (color) {
       const t = p.roundDown();
       if ((t.x + t.y) % 2 === 0) {
-        return this.color1
+        if (ceiling) {
+          return this.color1
+        }
+        return this.gray1
       } else {
-        return this.color2
+        if (ceiling) {
+          return this.color2
+        }
+        return this.gray2
       }
     }
     return this.floor
