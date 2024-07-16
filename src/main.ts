@@ -403,13 +403,13 @@ const canvasSize = (ctx: CanvasRenderingContext2D): Vector2 => {
     return new Vector2(ctx.canvas.width, ctx.canvas.height);
 };
 
-// hitting wall
+// Hitting wall
 const hittingWall = (p1: Vector2, p2: Vector2): Vector2 => {
     const d = p2.sub(p1);
     return new Vector2(Math.floor(p2.x + Math.sign(d.x) * EPSILON), Math.floor(p2.y + Math.sign(d.y) * EPSILON));
 };
 
-//Render the minimap
+// Render the minimap
 const renderMinimap = (ctx: CanvasRenderingContext2D, player: Player, position: Vector2, size: Vector2, scene: Scene): Vector2 | void => {
     // Clear the context
     ctx.save();
@@ -512,8 +512,8 @@ const renderWallsToImageData = (imageData: ImageData, scene: Scene, player: Play
                 const v = dy / Math.ceil(stripHeight);
                 const tx = Math.floor(u * wall.width);
                 const ty = Math.floor(v * wall.height);
-
                 const y = Math.floor((SCREEN_HEIGHT - stripHeight) * 0.5) + dy;
+
                 imageData.data[(y * SCREEN_WIDTH + x) * 4 + 0] = wall.data[(ty * wall.width + tx) * 4 + 0] / position.dot(distance);
                 imageData.data[(y * SCREEN_WIDTH + x) * 4 + 1] = wall.data[(ty * wall.width + tx) * 4 + 1] / position.dot(distance);
                 imageData.data[(y * SCREEN_WIDTH + x) * 4 + 2] = wall.data[(ty * wall.width + tx) * 4 + 2] / position.dot(distance);
@@ -526,7 +526,7 @@ const renderWallsToImageData = (imageData: ImageData, scene: Scene, player: Play
 };
 
 // Render the floor/ceiling
-const renderSurfaceIntoImageData = (imageData: ImageData, scene: Scene, player: Player, floor = true) => {
+const renderSurfaceIntoImageData = (imageData: ImageData, scene: Scene, player: Player, ceiling = false) => {
     const pz = SCREEN_HEIGHT / 2;
     const [p1, p2] = player.fov();
     const bp = p1.sub(player.position).mag();
@@ -543,7 +543,7 @@ const renderSurfaceIntoImageData = (imageData: ImageData, scene: Scene, player: 
             const t = t1.lerp(t2, x / SCREEN_WIDTH);
             let tile;
 
-            if (floor) {
+            if (ceiling) {
                 tile = scene.getTiles(t);
             } else {
                 tile = scene.getTiles(t, true, false);
@@ -553,7 +553,7 @@ const renderSurfaceIntoImageData = (imageData: ImageData, scene: Scene, player: 
                 const color = tile.brightness(1 / Math.sqrt(player.position.sqrtDistanceTo(t)));
                 let surface;
 
-                if (floor) {
+                if (ceiling) {
                     surface = y;
                 } else {
                     surface = sz;
